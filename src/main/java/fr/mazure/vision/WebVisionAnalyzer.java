@@ -6,7 +6,6 @@ import com.microsoft.playwright.options.*;
 import com.google.cloud.vision.v1.*;
 import com.google.protobuf.ByteString;
 import com.google.cloud.vision.v1.Feature.Type;
-import com.google.api.gax.grpc.InstantiatingGrpcChannelProvider;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -16,26 +15,31 @@ import java.util.List;
 
 public class WebVisionAnalyzer {
     public static void main(String[] args) {
-        String url = "https://example.com";  // Replace with your target URL
+        if (args.length != 1) {
+            System.out.println("Usage: java -jar web-vision-analyzer.jar <url>");
+            System.exit(1);
+            return;
+        }
+        String url = args[0];
         analyzeWebPage(url);
     }
 
     public static void analyzeWebPage(String url) {
-        try (Playwright playwright = Playwright.create()) {
+        try (final Playwright playwright = Playwright.create()) {
             // Launch browser in headless mode
             Browser browser = playwright.chromium().launch(
                 new BrowserType.LaunchOptions()
-                    .setHeadless(true)
+                               .setHeadless(true)
             );
 
             // Create a new browser context
-            BrowserContext context = browser.newContext(
+            final BrowserContext context = browser.newContext(
                 new Browser.NewContextOptions()
-                    .setViewportSize(1920, 1080)
+                           .setViewportSize(1920, 1080)
             );
 
             // Create a new page
-            Page page = context.newPage();
+            final Page page = context.newPage();
 
             // Navigate to the URL
             page.navigate(url);
@@ -44,7 +48,7 @@ public class WebVisionAnalyzer {
             page.waitForLoadState(LoadState.NETWORKIDLE);
 
             // Take screenshot
-            Path screenshotPath = Paths.get("webpage_screenshot.png");
+            final Path screenshotPath = Paths.get("screenshots", "webpage_screenshot.png");
             page.screenshot(new Page.ScreenshotOptions()
                 .setPath(screenshotPath)
                 .setFullPage(true));
@@ -54,33 +58,23 @@ public class WebVisionAnalyzer {
 
             // Clean up
             browser.close();
-        } catch (Exception e) {
+        } catch (final Exception e) {
             e.printStackTrace();
         }
     }
 
     private static void analyzeImageWithVision(Path imagePath) {
         try {
-            // Initialize the client with TCP transport configuration
-            /*ImageAnnotatorSettings settings = ImageAnnotatorSettings.newBuilder()
-                .setTransportChannelProvider(
-                    InstantiatingGrpcChannelProvider.newBuilder()
-                        .setEndpoint("vision.googleapis.com:443")
-                        .setChannelConfigurator(managedChannelBuilder -> 
-                            managedChannelBuilder.usePlaintext())
-                        .build())
-                .build();*/
-
-            try (ImageAnnotatorClient vision = ImageAnnotatorClient.create()) {
+            try (final ImageAnnotatorClient vision = ImageAnnotatorClient.create()) {
                 // Read the image file
-                byte[] imageBytes = Files.readAllBytes(imagePath);
-                ByteString imgBytes = ByteString.copyFrom(imageBytes);
+                final byte[] imageBytes = Files.readAllBytes(imagePath);
+                final ByteString imgBytes = ByteString.copyFrom(imageBytes);
 
                 // Create image object
-                Image img = Image.newBuilder().setContent(imgBytes).build();
+                final Image img = Image.newBuilder().setContent(imgBytes).build();
 
                 // Create feature list for different types of detection
-                List<Feature> features = new ArrayList<>();
+                final List<Feature> features = new ArrayList<>();
                 
                 // Add text detection
                 features.add(Feature.newBuilder().setType(Type.TEXT_DETECTION).build());
@@ -89,23 +83,23 @@ public class WebVisionAnalyzer {
                 features.add(Feature.newBuilder().setType(Type.OBJECT_LOCALIZATION).build());
                 
                 // Create the request
-                AnnotateImageRequest request = AnnotateImageRequest.newBuilder()
+                final AnnotateImageRequest request = AnnotateImageRequest.newBuilder()
                     .addAllFeatures(features)
                     .setImage(img)
                     .build();
 
                 // Create the batch request with single image
-                BatchAnnotateImagesRequest batchRequest = BatchAnnotateImagesRequest.newBuilder()
-                    .addRequests(request)
-                    .build();
+                final BatchAnnotateImagesRequest batchRequest = BatchAnnotateImagesRequest.newBuilder()
+                                                                                          .addRequests(request)
+                                                                                          .build();
 
                 // Call the Vision API
-                BatchAnnotateImagesResponse batchResponse = vision.batchAnnotateImages(batchRequest);
-                AnnotateImageResponse response = batchResponse.getResponses(0);
+                final BatchAnnotateImagesResponse batchResponse = vision.batchAnnotateImages(batchRequest);
+                final AnnotateImageResponse response = batchResponse.getResponses(0);
 
                 // Process text detection results
                 System.out.println("\nText Detections:");
-                for (EntityAnnotation text : response.getTextAnnotationsList()) {
+                for (final EntityAnnotation text : response.getTextAnnotationsList()) {
                     System.out.printf("Text: %s%n", text.getDescription());
                     System.out.printf("Position: %s%n", text.getBoundingPoly());
                 }
@@ -123,7 +117,7 @@ public class WebVisionAnalyzer {
                     return;
                 }
             }
-        } catch (Exception e) {
+        } catch (final Exception e) {
             e.printStackTrace();
         }
     }
