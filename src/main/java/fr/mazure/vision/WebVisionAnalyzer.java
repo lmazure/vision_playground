@@ -84,9 +84,9 @@ public class WebVisionAnalyzer {
                 
                 // Create the request
                 final AnnotateImageRequest request = AnnotateImageRequest.newBuilder()
-                    .addAllFeatures(features)
-                    .setImage(img)
-                    .build();
+                                                                         .addAllFeatures(features)
+                                                                         .setImage(img)
+                                                                         .build();
 
                 // Create the batch request with single image
                 final BatchAnnotateImagesRequest batchRequest = BatchAnnotateImagesRequest.newBuilder()

@@ -30,55 +30,7 @@
             <artifactId>google-cloud-vision</artifactId>
             <version>${google.cloud.vision.version}</version>
         </dependency>
-
-        <!-- SLF4J API -->
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-api</artifactId>
-            <version>2.0.9</version>
-        </dependency>
-
-        <!-- SLF4J Simple binding for logging -->
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-simple</artifactId>
-            <version>2.0.9</version>
-            <scope>runtime</scope>
-        </dependency>
     </dependencies>
-
-    <profiles>
-        <profile>
-            <id>install-playwright</id>
-            <activation>
-                <activeByDefault>false</activeByDefault>
-            </activation>
-            <build>
-                <plugins>
-                    <plugin>
-                        <groupId>org.codehaus.mojo</groupId>
-                        <artifactId>exec-maven-plugin</artifactId>
-                        <version>3.1.0</version>
-                        <executions>
-                            <execution>
-                                <id>playwright-install</id>
-                                <phase>prepare-package</phase>
-                                <goals>
-                                    <goal>java</goal>
-                                </goals>
-                                <configuration>
-                                    <mainClass>com.microsoft.playwright.CLI</mainClass>
-                                    <arguments>
-                                        <argument>install</argument>
-                                    </arguments>
-                                </configuration>
-                            </execution>
-                        </executions>
-                    </plugin>
-                </plugins>
-            </build>
-        </profile>
-    </profiles>
 
     <build>
         <plugins>
