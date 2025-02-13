@@ -16,7 +16,7 @@ import java.util.List;
 public class WebVisionAnalyzer {
     public static void main(String[] args) {
         if (args.length != 1) {
-            System.out.println("Usage: java -jar web-vision-analyzer.jar <url>");
+            System.err.println("Usage: java -jar web-vision-analyzer.jar <url>");
             System.exit(1);
             return;
         }
@@ -27,16 +27,10 @@ public class WebVisionAnalyzer {
     public static void analyzeWebPage(String url) {
         try (final Playwright playwright = Playwright.create()) {
             // Launch browser in headless mode
-            Browser browser = playwright.chromium().launch(
-                new BrowserType.LaunchOptions()
-                               .setHeadless(true)
-            );
+            final Browser browser = playwright.chromium().launch(new BrowserType.LaunchOptions().setHeadless(true));
 
             // Create a new browser context
-            final BrowserContext context = browser.newContext(
-                new Browser.NewContextOptions()
-                           .setViewportSize(1920, 1080)
-            );
+            final BrowserContext context = browser.newContext(new Browser.NewContextOptions().setViewportSize(1920, 1080));
 
             // Create a new page
             final Page page = context.newPage();
@@ -49,9 +43,8 @@ public class WebVisionAnalyzer {
 
             // Take screenshot
             final Path screenshotPath = Paths.get("screenshots", "webpage_screenshot.png");
-            page.screenshot(new Page.ScreenshotOptions()
-                .setPath(screenshotPath)
-                .setFullPage(true));
+            page.screenshot(new Page.ScreenshotOptions().setPath(screenshotPath)
+                                                        .setFullPage(true));
 
             // Analyze the screenshot with Google Cloud Vision
             analyzeImageWithVision(screenshotPath);
@@ -75,13 +68,13 @@ public class WebVisionAnalyzer {
 
                 // Create feature list for different types of detection
                 final List<Feature> features = new ArrayList<>();
-                
+
                 // Add text detection
                 features.add(Feature.newBuilder().setType(Type.TEXT_DETECTION).build());
-                
+
                 // Add object detection (can help identify buttons and UI elements)
                 features.add(Feature.newBuilder().setType(Type.OBJECT_LOCALIZATION).build());
-                
+
                 // Create the request
                 final AnnotateImageRequest request = AnnotateImageRequest.newBuilder()
                                                                          .addAllFeatures(features)
@@ -106,7 +99,7 @@ public class WebVisionAnalyzer {
 
                 // Process object detection results
                 System.out.println("\nObject Detections:");
-                for (LocalizedObjectAnnotation object : response.getLocalizedObjectAnnotationsList()) {
+                for (final LocalizedObjectAnnotation object : response.getLocalizedObjectAnnotationsList()) {
                     System.out.printf("Object: %s%n", object.getName());
                     System.out.printf("Confidence: %.2f%n", object.getScore());
                     System.out.printf("Position: %s%n", object.getBoundingPoly());
