@@ -1,4 +1,5 @@
-Install Playwright's Browser: see https://playwright.dev/java/docs/browsers?utm_source=pocket_shared#install-browsers.
+Install Playwright's Browser: see https://playwright.dev/java/docs/browsers?utm_source=pocket_shared#install-browsers.  
+(This will ba done automatically the first time the program is run.)
 ```bash
 mvn exec:java -e -D exec.mainClass=com.microsoft.playwright.CLI -D exec.args="install"
 ```
