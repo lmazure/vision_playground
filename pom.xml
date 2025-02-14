@@ -17,18 +17,20 @@
     </properties>
 
     <dependencies>
-        <!-- Playwright for web automation -->
         <dependency>
             <groupId>com.microsoft.playwright</groupId>
             <artifactId>playwright</artifactId>
             <version>${playwright.version}</version>
         </dependency>
-
-        <!-- Google Cloud Vision API -->
         <dependency>
             <groupId>com.google.cloud</groupId>
             <artifactId>google-cloud-vision</artifactId>
             <version>${google.cloud.vision.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.google.protobuf</groupId>
+            <artifactId>protobuf-java-util</artifactId>
+            <version>4.29.3</version>
         </dependency>
     </dependencies>
 
