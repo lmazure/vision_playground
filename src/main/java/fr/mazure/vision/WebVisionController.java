@@ -14,12 +14,14 @@ import java.nio.file.Path;
 public class WebVisionController {
 
     @PostMapping("/load_image")
-    public ResponseEntity<Integer> loadImage(@RequestParam String url) {
+    public ResponseEntity<String> loadImage(@RequestParam String url) {
         try {
             final int id = Screenshooter.generateScreenshot(url);
-            return ResponseEntity.ok(id);
+            final String json = "{\"id\": " + id + "}";
+            return ResponseEntity.ok(json);
         } catch (final Exception e) {
-            return ResponseEntity.internalServerError().build();
+            final String json = "{\"error\": \"" + e.getMessage() + "\"}";  
+            return ResponseEntity.internalServerError().body(json);
         }
     }
 

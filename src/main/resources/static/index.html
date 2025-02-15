@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image Analyzer</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .input-container {
+            margin-bottom: 20px;
+        }
+        #urlInput {
+            width: 70%;
+            padding: 8px;
+            margin-right: 10px;
+        }
+        button {
+            padding: 8px 15px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        #imageContainer {
+            margin: 20px 0;
+        }
+        #imageDisplay {
+            max-width: 100%;
+            margin: 20px 0;
+        }
+        #annotationContainer {
+            background-color: #f5f5f5;
+            padding: 15px;
+            border-radius: 5px;
+            white-space: pre-wrap;
+        }
+    </style>
+</head>
+<body>
+    <h1>Image Analyzer</h1>
+    
+    <div class="input-container">
+        <input type="text" id="urlInput" placeholder="Enter image URL">
+        <button onclick="loadImage()">Load Image</button>
+    </div>
+
+    <div id="imageContainer">
+        <img id="imageDisplay" style="display: none;">
+    </div>
+
+    <div id="annotationContainer"></div>
+
+    <script>
+        async function loadImage() {
+            const urlInput = document.getElementById('urlInput');
+            const imageDisplay = document.getElementById('imageDisplay');
+            const annotationContainer = document.getElementById('annotationContainer');
+            
+            try {
+                // First, load the image and get its ID
+                const loadResponse = await fetch(`/api/load_image?url=${encodeURIComponent(urlInput.value)}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                });
+                
+                const { id } = await loadResponse.json();
+                
+                // Then, get the image
+                const imageResponse2 = await fetch(`/api/get_image/${id}`);
+                if (!imageResponse2.ok) {
+                    throw new Error('Failed to retrieve image');
+                }
+                
+                const imageBlob = await imageResponse2.blob();
+                imageDisplay.src = URL.createObjectURL(imageBlob);
+                imageDisplay.style.display = 'block';
+                
+                // Finally, get the annotation
+                const annotationResponse = await fetch(`/api/get_annotation/${id}`);
+                if (!annotationResponse.ok) {
+                    throw new Error('Failed to retrieve annotation');
+                }
+                
+                const annotation = await annotationResponse.json();
+                annotationContainer.textContent = JSON.stringify(annotation, null, 2);
+                
+            } catch (error) {
+                console.error('Error:', error);
+                annotationContainer.textContent = 'Error: ' + error.message;
+            }
+        }
+    </script>
+</body>
+</html>
