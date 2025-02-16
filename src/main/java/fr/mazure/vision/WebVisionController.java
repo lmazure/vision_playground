@@ -20,8 +20,7 @@ public class WebVisionController {
             final String json = "{\"id\": " + id + "}";
             return ResponseEntity.ok(json);
         } catch (final Exception e) {
-            final String json = "{\"error\": \"" + e.getMessage() + "\"}";  
-            return ResponseEntity.internalServerError().body(json);
+            return ResponseEntity.internalServerError().body(buildErrorJson("Error generatin screenshot", e));
         }
     }
 
@@ -45,18 +44,21 @@ public class WebVisionController {
 
     @GetMapping("/get_annotation/{id}")
     public ResponseEntity<String> getAnnotation(@PathVariable int id) {
-        System.out.println("get_annotation " + id);
         try {
             final Path imagePath = Screenshooter.getScreenshotPath(id);
-            System.out.println(imagePath);
             final String json = GoogleVision.analyzeImageWithVision(imagePath);
-            System.out.println(json);
-
             return ResponseEntity.ok(json);
         } catch (final AiException e) {
-            return ResponseEntity.internalServerError().body("Error calling AI: " + e.getMessage());
+            return ResponseEntity.internalServerError().body(buildErrorJson("Error calling AI", e));
         } catch (final IOException e) {
-            return ResponseEntity.internalServerError().body("Error reading image: " + e.getMessage());
+            return ResponseEntity.internalServerError().body(buildErrorJson("Error reading image", e));
         }
+    }
+
+    private static String buildErrorJson(final String prefix, final Exception e) {
+        String message = e.getMessage();
+        message = message.replace("\\", "\\\\");
+        message = message.replace("\"", "\\\"");
+        return "{\"error\": \"" + prefix + ": " + message + "\"}";
     }
 }

@@ -7,7 +7,6 @@
     <style>
         body {
             font-family: Arial, sans-serif;
-            max-width: 800px;
             margin: 0 auto;
             padding: 20px;
         }
@@ -30,11 +29,18 @@
             background-color: #45a049;
         }
         #imageContainer {
-            margin: 20px 0;
+            margin: 0px;
+            position: relative;
         }
         #imageDisplay {
             max-width: 100%;
-            margin: 20px 0;
+            margin: 0px;
+        }
+        #overlayCanvas {
+            position: absolute;
+            left: 0;
+            top: 0;
+            pointer-events: none;
         }
         #annotationContainer {
             background-color: #f5f5f5;
@@ -54,14 +60,48 @@
 
     <div id="imageContainer">
         <img id="imageDisplay" style="display: none;">
+        <canvas id="overlayCanvas"></canvas>
     </div>
 
     <div id="annotationContainer"></div>
 
     <script>
+        let currentZoom = 1;
+
+        function drawBoundingPolygons(annotation, canvasDisplay, imageDisplay, width, height) {
+            const ctx = canvasDisplay.getContext('2d');
+            canvasDisplay.width = imageDisplay.width;
+            canvasDisplay.height = imageDisplay.height;
+            ctx.clearRect(0, 0, canvasDisplay.width, canvasDisplay.height);
+            zoomX = imageDisplay.width / width;
+            zoomY = imageDisplay.height / height;
+            // Set drawing style
+            ctx.strokeStyle = 'red';
+            ctx.lineWidth = 2;
+            
+            if (annotation.textAnnotations) {
+                annotation.textAnnotations.forEach(text => {
+                    if (text.boundingPoly && text.boundingPoly.vertices) {
+                        ctx.beginPath();
+                        const vertices = text.boundingPoly.vertices;
+                        // Move to the first vertex
+                        ctx.moveTo(vertices[0].x * zoomX, vertices[0].y * zoomY);
+                        // Draw lines to each subsequent vertex
+                        for (let i = 1; i < vertices.length; i++) {
+                            ctx.lineTo(vertices[i].x * zoomX, vertices[i].y * zoomY);
+                        }
+                        // Close the polygon
+                        ctx.closePath();
+                        ctx.stroke();
+                    }
+                });
+            }
+        }
+
         async function loadImage() {
             const urlInput = document.getElementById('urlInput');
             const imageDisplay = document.getElementById('imageDisplay');
+            const overlayCanvas = document.getElementById('overlayCanvas');
             const annotationContainer = document.getElementById('annotationContainer');
             
             try {
@@ -76,23 +116,32 @@
                 const { id } = await loadResponse.json();
                 
                 // Then, get the image
-                const imageResponse2 = await fetch(`/api/get_image/${id}`);
-                if (!imageResponse2.ok) {
-                    throw new Error('Failed to retrieve image');
+                const imageResponse = await fetch(`/api/get_image/${id}`);
+                if (!imageResponse.ok) {
+                    throw new Error('Failed to retrieve image: ' + imageResponse.error);
                 }
                 
-                const imageBlob = await imageResponse2.blob();
+                const imageBlob = await imageResponse.blob();
+                const imageObjectURL = URL.createObjectURL(imageBlob);
+                const image = new Image();
+                image.src = imageObjectURL;
+                let width, height;
+                image.onload = () => {
+                    width = image.width;
+                    height = image.height;
+                }
                 imageDisplay.src = URL.createObjectURL(imageBlob);
                 imageDisplay.style.display = 'block';
                 
-                // Finally, get the annotation
+                // Finally, get the annotations
                 const annotationResponse = await fetch(`/api/get_annotation/${id}`);
                 if (!annotationResponse.ok) {
-                    throw new Error('Failed to retrieve annotation');
+                    throw new Error('Failed to retrieve annotation: ' + annotationResponse.error);
                 }
                 
                 const annotation = await annotationResponse.json();
                 annotationContainer.textContent = JSON.stringify(annotation, null, 2);
+                drawBoundingPolygons(annotation, overlayCanvas, imageDisplay, width, height);
                 
             } catch (error) {
                 console.error('Error:', error);
