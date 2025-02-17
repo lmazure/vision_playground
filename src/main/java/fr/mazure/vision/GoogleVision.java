@@ -18,10 +18,26 @@ import com.google.cloud.vision.v1.Image;
 import com.google.cloud.vision.v1.ImageAnnotatorClient;
 import com.google.protobuf.util.JsonFormat;
 
-
+/**
+ * GoogleVision class provides methods to analyze images using the Google Vision API.
+ * 
+ * The main functionality includes performing various types of image analysis such as text detection and object localization.
+ * This class serves as a client interface to interact with the Google Vision API, providing an easy way to analyze images
+ * by specifying their file paths and receiving structured JSON responses.
+ */
 public class GoogleVision {
 
-    public static String analyzeImageWithVision(final Path imagePath) throws IOException {
+    /**
+     * Analyzes an image using the Google Vision API.
+     *
+     * This method performs text detection and object localization on the specified image.
+     *
+     * @param imagePath the path to the image file to analyze
+     * @return the response from the Vision API as a JSON string
+     * @throws IOException if there is an error reading the image file
+     * @throws AiException if there is an error calling the Vision API
+     */
+    public static String analyzeImageWithVision(final Path imagePath) throws IOException, AiException {
        try (final ImageAnnotatorClient vision = ImageAnnotatorClient.create()) {
             // Read the image file
             final byte[] imageBytes = Files.readAllBytes(imagePath);
@@ -48,7 +64,7 @@ public class GoogleVision {
             final AnnotateImageResponse response = batchResponse.getResponses(0);
 
             if (response.hasError()) {
-                throw new RuntimeException(response.getError().getMessage());
+                throw new AiException(response.getError().getMessage());
             }
             return JsonFormat.printer().includingDefaultValueFields().print(response);
         }

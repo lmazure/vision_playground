@@ -14,12 +14,13 @@ import java.nio.file.Path;
 public class WebVisionController {
 
     @PostMapping("/load_image")
-    public ResponseEntity<Integer> loadImage(@RequestParam String url) {
+    public ResponseEntity<String> loadImage(@RequestParam String url) {
         try {
             final int id = Screenshooter.generateScreenshot(url);
-            return ResponseEntity.ok(id);
+            final String json = "{\"id\": " + id + "}";
+            return ResponseEntity.ok(json);
         } catch (final Exception e) {
-            return ResponseEntity.internalServerError().build();
+            return ResponseEntity.internalServerError().body(buildErrorJson("Error generatin screenshot", e));
         }
     }
 
@@ -31,8 +32,8 @@ public class WebVisionController {
             
             if (resource.exists()) {
                 return ResponseEntity.ok()
-                        .contentType(MediaType.IMAGE_PNG)
-                        .body(resource);
+                                     .contentType(MediaType.IMAGE_PNG)
+                                     .body(resource);
             } else {
                 return ResponseEntity.notFound().build();
             }
@@ -47,8 +48,17 @@ public class WebVisionController {
             final Path imagePath = Screenshooter.getScreenshotPath(id);
             final String json = GoogleVision.analyzeImageWithVision(imagePath);
             return ResponseEntity.ok(json);
+        } catch (final AiException e) {
+            return ResponseEntity.internalServerError().body(buildErrorJson("Error calling AI", e));
         } catch (final IOException e) {
-            return ResponseEntity.internalServerError().build();
+            return ResponseEntity.internalServerError().body(buildErrorJson("Error reading image", e));
         }
+    }
+
+    private static String buildErrorJson(final String prefix, final Exception e) {
+        String message = e.getMessage();
+        message = message.replace("\\", "\\\\");
+        message = message.replace("\"", "\\\"");
+        return "{\"error\": \"" + prefix + ": " + message + "\"}";
     }
 }

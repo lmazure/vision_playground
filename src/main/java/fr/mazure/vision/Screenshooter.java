@@ -10,13 +10,30 @@ import com.microsoft.playwright.Page;
 import com.microsoft.playwright.Playwright;
 import com.microsoft.playwright.options.LoadState;
 
+/**
+ * The Screenshooter class provides methods to take screenshots of web pages.
+ */
 public class Screenshooter {
-       private static int incr = 0;
+    private static int incr = 0;
 
+    /**
+     * Returns the path of the screenshot with the given id.
+     * The screenshot is stored in the "screenshots" directory and has a name
+     * of the form "webpage_screenshot{id}.png", where {id} is replaced with the
+     * given id.
+     * @param id the id of the screenshot to retrieve
+     * @return the path of the screenshot
+     */
     public static Path getScreenshotPath(final int id) {
         return Paths.get("screenshots", "webpage_screenshot" + id + ".png");
     }
     
+    /**
+     * Generates a screenshot of the given web page.
+     * The method returns the id of the screenshot generated.
+     * @param url the URL of the web page to generate a screenshot of
+     * @return the id of the screenshot generated
+     */
     public static int generateScreenshot(final String url) {
 
         final int id = incr++;
