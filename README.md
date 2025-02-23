@@ -17,3 +17,10 @@ Uninstall them: see https://playwright.dev/java/docs/browsers?utm_source=pocket_
 ```bash
 mvn exec:java -e -D exec.mainClass=com.microsoft.playwright.CLI -D exec.args="uninstall --all"
 ```
+
+-----
+
+`tempo` contains a Python script `web-vision-automation.py` that clicks on an element given its text description.
+```bash
+python web-vision-automation.py
+```
